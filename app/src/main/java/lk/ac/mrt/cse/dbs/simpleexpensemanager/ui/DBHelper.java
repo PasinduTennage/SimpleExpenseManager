@@ -56,7 +56,6 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
     public SQLiteDatabase getDatabase() {
-
         SQLiteDatabase db = this.getReadableDatabase();
         return db;
 
