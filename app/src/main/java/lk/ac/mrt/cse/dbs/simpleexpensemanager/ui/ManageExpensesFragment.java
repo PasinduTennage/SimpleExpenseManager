@@ -82,7 +82,29 @@ public class ManageExpensesFragment extends Fragment implements View.OnClickList
         datePicker = (DatePicker) rootView.findViewById(R.id.date_selector);
         return rootView;
     }
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            setSpinnerAdapter();
+        } else {
+        }
+    }
 
+    /**
+     * Update account number spinner when fragment is resumed
+     */
+    private void setSpinnerAdapter() {
+        ArrayAdapter<String> adapter =
+                null;
+        if (currentExpenseManager != null) {
+            adapter = new ArrayAdapter<>(this.getActivity(), R.layout.support_simple_spinner_dropdown_item,
+                    currentExpenseManager.getAccountNumbersList());
+        }
+        if (accountSelector != null) {
+            accountSelector.setAdapter(adapter);
+        }
+    }
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -111,11 +133,11 @@ public class ManageExpensesFragment extends Fragment implements View.OnClickList
                                 .setMessage(e.getMessage())
                                 .setNeutralButton(this.getString(R.string.msg_ok),
                                         new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.cancel();
-                                    }
-                                }).setIcon(android.R.drawable.ic_dialog_alert).show();
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.cancel();
+                                            }
+                                        }).setIcon(android.R.drawable.ic_dialog_alert).show();
                     }
                 }
                 amount.getText().clear();

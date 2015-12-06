@@ -1,6 +1,12 @@
 package lk.ac.mrt.cse.dbs.simpleexpensemanager.data.impl;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.sqlite.SQLiteDatabase;
+
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.TransactionDAO;
@@ -19,20 +25,54 @@ public class PersistentMemoryTransactionDAO implements TransactionDAO {
     }
     @Override
     public void logTransaction(Date date, String accountNo, ExpenseType expenseType, double amount) {
-        if (expenseType == ExpenseType.EXPENSE){
-            db.logTransaction(date.toString(),accountNo,"EXPENSE",(float)amount);
-        }else{
-            db.logTransaction(date.toString(),accountNo,"INCOME",(float)amount);
-        }
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("trans_date", date.toString());
+        contentValues.put("accountno", accountNo);
+        contentValues.put("expense", String.valueOf(expenseType));
+        contentValues.put("amount", amount);
+        SQLiteDatabase database = db.getDatabase();
+
+        database.insert("transactions", null, contentValues);
+        database.close();
     }
 
-    @Override
-    public List<Transaction> getAllTransactionLogs() {
-        return db.getAllTransactions();
+    public int numberOfRows(String tableName) {
+        SQLiteDatabase database = db.getDatabase();
+        int numRows = (int) DatabaseUtils.queryNumEntries(database, tableName);
+        database.close();
+        return numRows;
     }
+
+
+    public List<Transaction> getAllTransactionLogs() {
+        List<Transaction> transactions = new LinkedList<>();
+        SQLiteDatabase database = db.getDatabase();
+        Cursor res = database.rawQuery("select * from transactions", null);
+        res.moveToFirst();
+
+        while (res.isAfterLast() == false) {
+            ExpenseType type = null;
+            if (res.getString(2).equals("EXPENSE")) {
+                type = ExpenseType.EXPENSE;
+            } else {
+                type = ExpenseType.INCOME;
+            }
+            transactions.add(new Transaction(new Date(res.getString(0)), res.getString(1), type, Double.parseDouble(res.getString(3))));
+            res.moveToNext();
+        }
+        database.close();
+        return transactions;
+    }
+
 
     @Override
     public List<Transaction> getPaginatedTransactionLogs(int limit) {
-        return db.getPaginatedTransactions(limit);
+        int size = this.numberOfRows("transactions");
+        if (size <= limit) {
+            return getAllTransactionLogs();
+        }
+
+        return getAllTransactionLogs().subList(size - limit, size);
     }
 }
