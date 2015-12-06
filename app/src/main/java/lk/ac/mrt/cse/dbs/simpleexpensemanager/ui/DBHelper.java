@@ -44,7 +44,6 @@ public class DBHelper extends SQLiteOpenHelper {
                 "create table transactions " +
                         "(trans_date varchar(20), accountno varchar(20) not null,expense varchar(20),amount float,FOREIGN KEY(accountno) REFERENCES accounts(accountno) )"
         );
-
     }
 
     @Override
